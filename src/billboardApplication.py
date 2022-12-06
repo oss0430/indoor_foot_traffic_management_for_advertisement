@@ -1,4 +1,41 @@
+import RPi.GPIO as GPIO
 import time
+
+class UltraSoundSensor():
+    def __init__(
+        self,
+        trigger_pin_BCM : int = 2,
+        echo_pin_BCM : int = 3
+    ) -> None:
+        GPIO.setmode(GPIO.BCM)
+        self.trigger_pin_BCM = trigger_pin_BCM
+        self.echo_pin_BCM = echo_pin_BCM
+        
+        GPIO.setup(trigger_pin_BCM, GPIO.OUT)
+        GPIO.setup(echo_pin_BCM, GPIO.IN)
+
+
+    def _echo_location_by_cm(self) -> float:
+        GPIO.output(self.trigger_pin_BCM, True)
+        ## Delay for 10uS pulse
+        time.sleep(0.00001)
+        GPIO.output(self.trigger_pin_BCM, False)
+
+        while GPIO.input(self.echo_pin_BCM) == 0:
+            pulse_start = time.time()
+
+        while GPIO.input(self.echo_pin_BCM) == 1:
+            pulse_end = time.time()
+
+        pulse_duration = pulse_end - pulse_start
+        distance = pulse_duration * 34300 / 2
+        distance = round(distance, 4)
+
+        time.sleep(0.4)
+
+        return distance
+
+
 
 class MovementSensor():
 
@@ -42,22 +79,25 @@ class AWSCloud():
 
         return
 
-class Bilboard():
+class Billboard():
 
     def __init__(
         self,
         camera : Camera,
         screen : Screen,
         aws_cloud : AWSCloud,
-        movement_sensor : MovementSensor
+        movement_sensor : MovementSensor,
+        ultrasound_sensor : UltraSoundSensor,
     ):
         self.camera = camera
         self.screen = screen
         self.aws_cloud = aws_cloud
         self.movement_sensor = movement_sensor
+        self.ultrasound_sensor = ultrasound_sensor
 
     def _is_movement(self):
         return self.movement_sensor()
+
 
     def run_test(
         self
