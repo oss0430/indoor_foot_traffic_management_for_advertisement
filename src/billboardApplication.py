@@ -108,7 +108,7 @@ class ScreenController():
 
         self.new_image_event.clear()
         imageViewerFromCommandLine = {
-                'linux':'xdg-open',
+                'linux':'fbi',
                 'win32':'explorer',
                 'darwin':'open'
             }[sys.platform]
