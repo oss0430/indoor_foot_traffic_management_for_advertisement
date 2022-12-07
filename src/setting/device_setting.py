@@ -14,8 +14,8 @@ def device_setting():
     MAC_array = ['ED:8F:E6:7D:0C:E0', 'E1:AD:E3:0A:98:37', 'FB:C8:08:B9:DB:9F'
                 , 'C0:AF:50:DB:25:6F', 'F4:F7:59:60:19:72']
 
-    pos_x = [0,0,1000,1000]
-    pos_y = [0,300,0,300]
+    pos_x = [0,0,100000,100000]
+    pos_y = [0,50000,0,50000]
     pos_z = [0,0,0,0]
 
     count = 0
@@ -71,3 +71,5 @@ def device_setting():
             dev.disconnect()
             print((MAC), 'is disconnected')
         count = count +1
+        
+device_setting()

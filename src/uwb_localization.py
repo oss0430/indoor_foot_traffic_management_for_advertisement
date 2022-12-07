@@ -36,6 +36,7 @@ def localization():
         ch = locService.getCharacteristics(readdata)[0]
         if(ch.supportsRead()):
             while 1:
+                life = 10
                 val = binascii.b2a_hex(ch.read())
                 x_pos = bytearray(ch.read()[1:5])
                 y_pos = bytearray(ch.read()[5:9])
@@ -44,10 +45,11 @@ def localization():
                 x_pos = struct.unpack('<i', x_pos)[0]
                 y_pos = struct.unpack('<i', y_pos)[0]
                 z_pos = struct.unpack('<i', z_pos)[0]
-                # print('x=',(x_pos/1000), 'm   y=', (y_pos/1000), 'm   z=', (z_pos/1000), 'm')
+                print('x=',(x_pos/1000), 'm   y=', (y_pos/1000), 'm   z=', (z_pos/1000), 'm')
                 point = [x_pos/1000, y_pos/1000, z_pos/1000]
-                if (point[0] < 1000 and point[1] < 1000 and point[2] < 1000):
-                    point_return.append(point)
+                print(life)
+                point_return.append(point)
+                life -= 1
                 
                 if len(ch.read()) == 43:
                     for j in range(4):
@@ -56,9 +58,15 @@ def localization():
                         n_dis[j] = bytearray(ch.read()[17+j*7:21+j*7])
                         n_id[j] = hex(struct.unpack('<H', n_id[j])[0])
                         n_dis[j] = struct.unpack('<i', n_dis[j])[0]
-                        # print((n_id[j]), ':', (n_dis[j]/1000), '      ', end ='')
+                        print((n_id[j]), ':', (n_dis[j]/1000), '      ', end ='')
                     print('\n')
+                    
+                if (life == 0):
+                    break
                     
     finally:
         dev.disconnect()
+        print(point_return)
         return point_return
+    
+    

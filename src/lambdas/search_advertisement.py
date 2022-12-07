@@ -19,7 +19,7 @@ def lambda_handler(event, context):
                 'Keys' : [
                     {
                         'ad_name' : {
-                            'S' : adv_name
+                            'S' : adv_nabme
                         }
                     }
                 ]

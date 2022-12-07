@@ -1,8 +1,11 @@
 import json
 import requests
 
+from datetime import datetime
+from pytz import timezone
 
-class point_to_sales():
+
+class Point_to_sales():
     def __init__(
         self,
         adv_name = None,
@@ -10,27 +13,21 @@ class point_to_sales():
         adv_url = None,
         aws_url = None
     ) -> None:
-        self.sales_data = {
+        self.sales_data = {}
+        self.adv_data = {
             'name' : adv_name,
             'company' : adv_company,
             'adv_url' : adv_url,
+            'date' : None
         }
         self.aws_url = "https://77gonk6cp7.execute-api.ap-northeast-1.amazonaws.com/default"
         
         return None
     
-    {
-    "market_name" : "iPhone 14",
-    "product_name" : "Apple",
-    "product_id" : 11343,
-    "number" : 14,
-    "price" : 1250000,
-    "sales" : 17500000
-}
-    
     def load_sales_data_with_json(
         self,
-        file_path
+        file_path,
+        formatted_data
     ) -> None:
         with open(file_path, 'r') as file:
             data = json.load(file)
@@ -40,7 +37,9 @@ class point_to_sales():
             self.sales_data['count'] = data['count']
             self.sales_data['price'] = data['price']
             self.sales_data['product_id'] = data['product_id']
-        
+            self.sales_data['date'] = formatted_data[0:10]
+
+                    
         print(self.sales_data)
         return None
     
@@ -48,8 +47,7 @@ class point_to_sales():
         self,
     ):
         host = self.aws_url + '/point_of_sales'
-        json_data = json.dumps(self.sales_data, ensure_ascii=False)
-        response = requests.post(host, json = json_data, headers=None)
+        response = requests.post(host, data = self.sales_data, headers=None)
 
         return response
     
@@ -68,7 +66,17 @@ class point_to_sales():
         
         return adv_youtube_url 
     
-sales = point_to_sales()
-sales.load_sales_data_with_json("advertisement_data.json")
-sales._upload_to_dynamoDB()
-sales._search_in_dynamoDB("iPhone14")
+
+
+def main():
+    
+    now = datetime.now(timezone('Asia/Seoul'))
+    formatted_data = now.strftime('%Y-%m-%d %H:%M:%S') # timestemp    
+
+    sales = Point_to_sales()
+    sales.load_sales_data_with_json("data/sales_data.json", formatted_data)
+    sales._upload_to_dynamoDB()
+    # sales._search_in_dynamoDB("iPhone14")    
+
+if __name__ == '__main__': 
+    main()

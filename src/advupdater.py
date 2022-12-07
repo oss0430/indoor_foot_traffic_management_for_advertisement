@@ -51,7 +51,18 @@ class AdvUpdater():
         host = self.aws_url + '/search_advertisement'
         response = requests.post(host, data=data, headers=None)
         lambda_data = json.loads(response.content)
-        adv_youtube_url = lambda_data[adv_name][0]['ad_url']['S']
-        print(adv_youtube_url)     # DB에 존재하는 광고 이름의 유튜브 주소값 출력
+        #adv_youtube_url = lambda_data[adv_name][0]['ad_url']['S']
+        #print(adv_youtube_url)     # DB에 존재하는 광고 이름의 유튜브 주소값 출력
         
-        return adv_youtube_url 
+        #return adv_youtube_url 
+    
+    
+def main():
+    
+
+
+    sales = AdvUpdater()
+    sales._search_in_dynamoDB("iPhone14")    
+
+if __name__ == '__main__': 
+    main()
