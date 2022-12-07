@@ -1,1 +1,4 @@
 src/captured_image
+/AWS
+src/__pycache__
+src/aws_config.json
