@@ -94,44 +94,57 @@ class ScreenController():
     def __init__(
         self    
     ) -> None:
-        return
+        self.stop_screen_event = threading.Event()
+        self.new_image_event = threading.Event()
+
 
     def _show_image_from_path_on_screen(
         self,
         path
     ) -> None:
 
-        image = cv2.imread(path)
-        cv2.imshow("Faces found", image)
+        while True:
+            image = cv2.imread(path)
+            cv2.imshow("Billboard", image)
+            key = cv2.waitKey(10)
+
+            if self.new_image_event.is_set():
+                cv2.destroyAllWindows()
+                break
+
+            if self.stop_screen_event.is_set():
+                cv2.destroyAllWindows()
+                break
 
         return
 
-    def terminate_existing_image_thread(self):
-        None
+    def update_screen_with_new_image(self) -> None :
+        self.new_image_event.set()
 
-    def create_thread_that_show_image(self):
-        None 
 
-"""
+    def stop_screen_for_good(self) -> None:
+        self.stop_screen_event.set()
 
-class ImageShowingThread(Thread):
-    def on_thread_finished(
+
+    def run_screen(
         self,
-        thread,
-        data
-    ):
-        pass
+        image_path : str     
+    )-> None:
 
-    def __init__(
-        self,
-        secreen_controller : ScreenController
-    ):
-        self.parent = parent
+        self.stop_screen_event.clear()
 
+        while True:
+            thread = threading.Thread(target = self._show_image_from_path_on_screen, args = (image_path,))
+            thread.start()
+            thread.join()
+            self.new_image_event.clear()
 
-    def run(self):
-        self.parent and self.parent.
-"""
+            if self.stop_screen_event.is_set():
+                self.stop_screen_event.clear()
+                break
+
+        return
+
 
 class AWSIoTController():
     def __init__(
@@ -193,7 +206,7 @@ class AWSIoTController():
 
         return img_na
 
-    def _publish_image_and_its_face_count(
+    def publish_image_and_its_face_count(
         self,
         image_path : str,
         face_count : int
@@ -216,25 +229,23 @@ class AWSIoTController():
         self.client.publishAsync(self.publish_topic+"/"+self.clinet_name +"/face_count", faceCount_json, 1, ackCallback=awsPublishcallback)
         
 
-    def _subscribe_and_save_image(
+    def subscribe_and_save_image(
         self,
         image_save_path : str,
     ) -> None:
-        def awsSubscribeCallback(mid, data):
-            print("AWS Subscribed")
-    
+
         def callbackonAWSMessage(client, userdata, message):
             print('message recieved')
             self._read_image_from_json_message(message.payload, image_save_path)
     
-        self.client.subscribeAsync(self.subscribe_topic, 1, ackCallback = awsSubscribeCallback, messageCallback = callbackonAWSMessage)
+        self.client.subscribe(self.subscribe_topic, 1, callback = callbackonAWSMessage)
 
 
     def testPublish(self):
-        self._publish_image_and_its_face_count("test_img.png", 5)
+        self.publish_image_and_its_face_count("test_img.png", 5)
 
     def testSubscribe(self):
-        self._subscribe_and_save_image("subscribed_imaged_result.png")
+        self.subscribe_and_save_image("subscribed_imaged_result.png")
 
 
 class Billboard():
@@ -242,20 +253,23 @@ class Billboard():
     def __init__(
         self,
         camera_controller : CameraController,
-        screen ,#: Screen,
-        aws_cloud : AWSIoTController, 
+        screen_controller : ScreenController,
+        aws_iot_controller : AWSIoTController, 
         ultrasound_sensor : UltraSoundSensor,
         billboard_image_path : str,
         camera_capture_dir_path : str,
         cascade_file_path : str,
     ) -> None:
         self.camera_controller = camera_controller
-        self.screen = screen
-        self.aws_cloud = aws_cloud
+        self.screen_controller = screen_controller
+        self.aws_iot_controller = aws_iot_controller
         self.ultrasound_sensor = ultrasound_sensor
         self.billboard_image_path = billboard_image_path
         self.camera_capture_dir_path = camera_capture_dir_path
         self.cascade_file_path = cascade_file_path
+        
+        self.new_billboard_image_arrive_event = threading.Event()
+        self.close_billboard_for_good_event = threading.Event()
 
 
     def _create_json_classification_payload(self):
@@ -289,45 +303,89 @@ class Billboard():
             cv2.imwrite(self.camera_capture_dir_path + "/captured_boxed.png" ,image)
 
         return len(faces)
-    
+
+
+    def _keep_checking_face_and_publish(
+        self
+    ) -> bool:
+
+        while True:
+            
+            if self.new_billboard_image_arrive_event.is_set():
+                ## Untill New image is properly shown in screen
+                ## Dont Send
+                break
+
+            if self.close_billboard_for_good_event.is_set():
+                ## Clase Billboard for good Event
+                ## Dont Send
+                break
+
+
+            if self.ultrasound_sensor.are_people_in_front_standing():
+                self.camera_controller.take_picture_and_save_to_dir(self.camera_capture_dir_path)
+                face_count = self._get_face_count_in_captured_image_recognition(do_save_boxed_image = True)
+                self.aws_iot_controller.publish_image_and_its_face_count(image_path = self.camera_capture_dir_path + "/captured_boxed.png", face_count= face_count)
+                print("yes_poeple")
+                    
+            else :
+                print("no_people")
+                time.sleep(1)
+
+        return
+
+    def _subscribe_to_aws_for_new_billboard_image(
+        self
+    ) -> str:
+            
+        while True:
+            if self.close_billboard_for_good_event.is_set():
+                break
+
+            ## Keep Listening to Subscribtion
+            self.aws_iot_controller.subscribe_and_save_image(self.billboard_image_path)
+            
+            ## If above line is done listening stops, subscribtion made
+            ## Start updating image, untill update complete stop publishing
+            self.new_billboard_image_arrive_event.set()
+            self.screen_controller.update_screen_with_new_image()
+            update_inprogress_condition = self.screen_controller.new_image_event
+
+            while not update_inprogress_condition.is_set():
+                time.sleep(0.01)
+
+            ## Update Complete
+            self.new_billboard_image_arrive_event.clear()
+
+        return
+        
+    def stop_billboard(self)->None:
+        self.close_billboard_for_good_event.set()
+        
+                        
+
     def run_billboard(
         self
     ):
-        ## Shows Test Billboard image through screen
-        ## upload face recognition result to aws
-        ## Along with Billboard image id (for AB TESTING)
-        
-        
-        ## Thread a people checker
-        def keep_checking_face(
-            ultrasound_sensor : UltraSoundSensor,
-            aws_cloud : AWSIoTController
-        ) -> bool:
+        ## Shows Billboard image through screen
+        ## update billboard image when subscription
+        ## upload face recognition result when people is infront of billboard
+        self.close_billboard_for_good_event.clear()
 
-            while True:
-                if ultrasound_sensor.are_people_in_front_standing():
-                    ## Upload Image to cloud
-                    aws_cloud._publish_image_and_its_face_count
-                    print("yes_poeple")
-                    
-                else :
-                    print("no_people")
-                time.sleep(1)
+        while True:
+            if self.close_billboard_for_good_event.is_set():
+                self.screen_controller.stop_screen_for_good.set()
+                self.aws_iot_controller.client.disconnect()
+                break
             
+            # Run Screen 
+            self.screen_controller.run_screen(self.billboard_image_path)
+            ## Thread a people checker
+            
+            keep_checking_face_thread = threading.Thread(target = self._keep_checking_face_and_publish)
+            keep_updating_billboard_thread = threading.Thread(target = self._subscribe_to_aws_for_new_billboard_image)
 
-        
-        def subscribe_to_aws_for_new_billboard_image(
-            aws_iot_controller : AWSIoTController,
-            image_save_path : str,
-            screen_controller : ScreenController
-        ) -> str:
-            screen_controller.terminate_existing_image_thread()
-            aws_iot_controller._subscribe_and_save_image(image_save_path)
-            screen_controller.create_thread_that_show_image()
+            keep_checking_face_thread.join()
+            keep_updating_billboard_thread.join()
             
-        
-            
-            
-
-        self.camera_controller.take_picture_and_save_to_dir(self.camera_capture_dir_path)
-        return self._get_face_count_in_captured_image_recognition(True)
+        return

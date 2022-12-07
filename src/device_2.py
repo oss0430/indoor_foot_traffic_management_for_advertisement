@@ -6,6 +6,7 @@ from billboardApplication import *
 camera_capture_dir_path = "./captured_image"
 cascade_file_path = "haarcascade_frontalface_default.xml"
 aws_config_json_path = "aws_config.json"
+test_img = "test_img.png"
 
 GPIO.cleanup()
 
@@ -24,8 +25,14 @@ my_aws_iot_controller = AWSIoTController(
     "billboard/sub"
 )
 
-my_aws_iot_controller.testPublish()
-print("test_complete")
+my_screen_controller = ScreenController()
+my_screen_controller.run_screen(test_img)
+
+while True:
+    command = input("input command n, x : ")
+    
+#my_aws_iot_controller.testPublish()
+#print("test_complete")
 
 my_billboard = Billboard(
     camera_controller = my_camera_controller,
