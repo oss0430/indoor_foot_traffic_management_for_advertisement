@@ -43,5 +43,9 @@ def network_setting():
         finally:
             dev.disconnect()
             print((MAC), 'is disconnected')
+<<<<<<< HEAD:src/setting/network_setting.py
             
 network_setting()
+=======
+            
+>>>>>>> 88266ce153fe33003238e45bb0c08743c9d61af9:src/setting/Network_setting.py

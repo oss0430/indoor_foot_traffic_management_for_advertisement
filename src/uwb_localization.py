@@ -32,6 +32,8 @@ def localization():
     n_id = [0]*4
     n_dis = [0]*4
 
+    life = 30
+
     try:
         ch = locService.getCharacteristics(readdata)[0]
         if(ch.supportsRead()):
@@ -46,9 +48,10 @@ def localization():
                 y_pos = struct.unpack('<i', y_pos)[0]
                 z_pos = struct.unpack('<i', z_pos)[0]
                 print('x=',(x_pos/1000), 'm   y=', (y_pos/1000), 'm   z=', (z_pos/1000), 'm')
+
                 point = [x_pos/1000, y_pos/1000, z_pos/1000]
-                print(life)
-                point_return.append(point)
+                if (len(point) != 0):
+                    break
                 life -= 1
                 
                 if len(ch.read()) == 43:
@@ -59,14 +62,11 @@ def localization():
                         n_id[j] = hex(struct.unpack('<H', n_id[j])[0])
                         n_dis[j] = struct.unpack('<i', n_dis[j])[0]
                         print((n_id[j]), ':', (n_dis[j]/1000), '      ', end ='')
+
                     print('\n')
                     
                 if (life == 0):
-                    break
-                    
+                    break         
     finally:
         dev.disconnect()
-        print(point_return)
-        return point_return
-    
-    
+        return point

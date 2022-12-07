@@ -2,7 +2,7 @@ import json
 import requests
 
 
-class AdvUpdater():
+class advupdater():
     def __init__(
         self,
         adv_name = None,

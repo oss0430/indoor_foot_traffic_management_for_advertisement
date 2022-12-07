@@ -18,10 +18,10 @@ def load_data_with_json(file_path):
 
 def main():
     # init Database
-    path = 'data/DB_account.json'
-    data= load_data_with_json(path)
-    dbms = SpetialDBManagement(data['account'], str(data['password']), data['table'])
-    dbms.init_database()
+    # path = 'data/DB_account.json'
+    # data= load_data_with_json(path)
+    # dbms = SpetialDBManagement(data['account'], str(data['password']), data['table'])
+    # dbms.init_database()
     
     # init AWS
     aws = Locupdater()
@@ -39,13 +39,12 @@ def main():
         
         user_loc = [0.027,-0.044,0.121]                         # 내일 시연할 때 여기 지워주기
         floor = (user_loc[2] // 3) + 1
-        local_POINT_type = '(' + str(user_loc[0]) + ", " + str(user_loc[1]) + ")"
         formatted_data = now.strftime('%Y-%m-%d %H:%M:%S') # timestemp    
         
         aws.upload_localdata_to_dynamoDB(data['user_id'], user_loc[0], user_loc[1], formatted_data)
         
-        dbms.add_user_local_data(data['user_id'], 'POINT(1,3)', floor, formatted_data)
-        dbms.print_user_local_data(formatted_data)
+        # dbms.add_user_local_data(data['user_id'], 'POINT(1,3)', floor, formatted_data)
+        # dbms.print_user_local_data(formatted_data)
         
         life -= 1
         if(life == 0):

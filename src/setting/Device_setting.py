@@ -3,19 +3,32 @@ import binascii
 import struct
 import time
 
+'''
+45 * 6 = 270
+450mm*10 = 4500
+
+'''
+
+
 def device_setting():
-    MAC_dict = {
-        'DWCCB6' : 'ED:8F:E6:7D:0C:E0', 
-        'DW1D02' : 'E1:AD:E3:0A:98:37', 
-        'DW8797' : 'FB:C8:08:B9:DB:9F',
-        'DWCF23' : 'C0:AF:50:DB:25:6F',
-        'DW962E' : 'F4:F7:59:60:19:72'
-    }
+    # MAC_dict = {
+    #     'DWCCB6' : 'ED:8F:E6:7D:0C:E0', 
+    #     'DW1D02' : 'E1:AD:E3:0A:98:37', 
+    #     'DW8797' : 'FB:C8:08:B9:DB:9F',
+    #     'DWCF23' : 'C0:AF:50:DB:25:6F',
+    #     'DW962E' : 'F4:F7:59:60:19:72'
+    # }
+    
     MAC_array = ['ED:8F:E6:7D:0C:E0', 'E1:AD:E3:0A:98:37', 'FB:C8:08:B9:DB:9F'
                 , 'C0:AF:50:DB:25:6F', 'F4:F7:59:60:19:72']
 
+<<<<<<< HEAD:src/setting/device_setting.py
     pos_x = [0,0,100000,100000]
     pos_y = [0,50000,0,50000]
+=======
+    pos_x = [0,0,4500,4500]
+    pos_y = [0,2700,0,2700]
+>>>>>>> 88266ce153fe33003238e45bb0c08743c9d61af9:src/setting/Device_setting.py
     pos_z = [0,0,0,0]
 
     count = 0
@@ -72,4 +85,8 @@ def device_setting():
             print((MAC), 'is disconnected')
         count = count +1
         
+<<<<<<< HEAD:src/setting/device_setting.py
 device_setting()
+=======
+# device_setting()
+>>>>>>> 88266ce153fe33003238e45bb0c08743c9d61af9:src/setting/Device_setting.py

@@ -5,7 +5,7 @@ from pytz import timezone
 
 from pymysql.constants import CLIENT
 
-class SpetialDBManagement():
+class SpatialDBManagement():
     host = 'localhost'
     user = None
     password = None
@@ -261,16 +261,20 @@ class SpetialDBManagement():
         return -1
     
 
-
 def main():
-
+    test = SpatialDBManagement
     
+    test.init_database()
+
     
 if __name__ == '__main__': 
     main()
-    '''
+    
+    
+
+'''
     # DB 사용 준비
-    test = SpetialDBManagement('admin1', '1234', 'location_data')
+    test = SpatialDBManagement('admin1', '1234', 'location_data')
     now = datetime.now(timezone('Asia/Seoul'))
     test.init_database()
 
@@ -302,4 +306,4 @@ if __name__ == '__main__':
     if (temp != -1):
         temp = 'market ID = {market_id}, product name = {product_name}'.format(market_id = temp[0], product_name = temp[1])
         print('->  ' + temp)
-    '''
+'''
