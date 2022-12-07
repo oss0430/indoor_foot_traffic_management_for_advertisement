@@ -77,7 +77,9 @@ now = datetime.now(timezone('Asia/Seoul'))
 formatted_data = now.strftime('%Y-%m-%d %H:%M:%S')
 # print(formatted_data)
 # print(test.upload_localdata_to_dynamoDB())
-test.upload_product_hold_data_to_dynamoDB(sample_data['user_id'], sample_data['market_name'], sample_data['product_name'],formatted_data)
+# test.upload_product_hold_data_to_dynamoDB(sample_data['user_id'], sample_data['market_name'], sample_data['product_name'],formatted_data)
+
+test.upload_localdata_to_dynamoDB(sample_data['user_id'], sample_data['x_user'], sample_data['y_user'], formatted_data)
 
 '''
 
