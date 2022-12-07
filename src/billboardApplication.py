@@ -1,6 +1,7 @@
 import RPi.GPIO as GPIO
 import picamera
 import time
+import datetime
 import os
 import cv2
 import json
@@ -148,6 +149,13 @@ class AWSIoTController():
         client.configureCredentials(cloud_config.root_ca_path, cloud_config.private_key_path, cloud_config.cert_file_path) 
         client.configureConnectDisconnectTimeout(cloud_config.disconnection_timeout) 
         client.configureMQTTOperationTimeout(cloud_config.mqtt_operation_timeout)
+        
+        def awsConnectCallback(mid, data):
+            print("AWS connected")
+
+        #client.connectAsync(ackCallback=awsConnectCallback)     
+        client.connect()
+        
         self.client = client
         self.publish_topic = publish_topic
         self.subscribe_topic = subscribe_topic
@@ -160,7 +168,14 @@ class AWSIoTController():
         img = cv2.imread(file_path, cv2.IMREAD_COLOR)
         _, img_jpg = cv2.imencode(".jpg", img, [int(cv2.IMWRITE_JPEG_QUALITY), 80])
         b64 = base64.b64encode(img_jpg)
-        messageJson = json.dumps({'image':b64.decode("utf-8")})
+        messageJson = json.dumps(
+            {
+                'device_name' : self.clinet_name,
+                'image':b64.decode("utf-8"),
+                'datetime' : datetime.datetime.now().strftime("%Y%M%D_%H:%M:%S")
+            }
+        )
+            
     
         return messageJson
 
@@ -186,12 +201,19 @@ class AWSIoTController():
 
         image_json = self._read_image_file_as_message_for_publishing(image_path)
         def awsPublishcallback(mid):
-                print("AWS Publish") 
+            print("AWS Publish") 
         
-        faceCount_json = json.dumps({'facecount':face_count})
-        
-        self.client.publishAsync(self.publish_topic+"/image", image_json, 1, ackCallback=awsPublishcallback)
-        self.client.publishAsync(self.publish_topic+"/face_count", faceCount_json, 1, ackCallback=awsPublishcallback)
+        faceCount_json = json.dumps(
+            {
+                'device_name' : self.clinet_name,
+                'facecount':face_count,
+                'datetime' : datetime.datetime.now().strftime("%Y%M%D_%H:%M:%S")
+            }
+        )
+        #print("json_messages : ",faceCount_json, image_json)
+            
+        self.client.publishAsync(self.publish_topic+"/"+self.clinet_name +"/image", image_json, 1, ackCallback=awsPublishcallback)
+        self.client.publishAsync(self.publish_topic+"/"+self.clinet_name +"/face_count", faceCount_json, 1, ackCallback=awsPublishcallback)
         
 
     def _subscribe_and_save_image(
@@ -221,7 +243,7 @@ class Billboard():
         self,
         camera_controller : CameraController,
         screen ,#: Screen,
-        aws_cloud , #: AWSCloud,
+        aws_cloud : AWSIoTController, 
         ultrasound_sensor : UltraSoundSensor,
         billboard_image_path : str,
         camera_capture_dir_path : str,
