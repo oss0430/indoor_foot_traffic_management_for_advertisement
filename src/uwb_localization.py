@@ -7,6 +7,8 @@ import time
 def localization():
 
     ble_connect_flag = False
+    point_return = []
+    dis_return = []
 
     # https://ianharvey.github.io/bluepy-doc/peripheral.html
     # The Peripheral class
@@ -32,8 +34,6 @@ def localization():
 
     try:
         ch = locService.getCharacteristics(readdata)[0]
-        print("ch : ")
-        print(ch)
         if(ch.supportsRead()):
             while 1:
                 val = binascii.b2a_hex(ch.read())
@@ -44,19 +44,21 @@ def localization():
                 x_pos = struct.unpack('<i', x_pos)[0]
                 y_pos = struct.unpack('<i', y_pos)[0]
                 z_pos = struct.unpack('<i', z_pos)[0]
-                print('x=',(x_pos/1000), 'm   y=', (y_pos/1000), 'm   z=', (z_pos/1000), 'm')
+                # print('x=',(x_pos/1000), 'm   y=', (y_pos/1000), 'm   z=', (z_pos/1000), 'm')
+                point = [x_pos/1000, y_pos/1000, z_pos/1000]
+                if (point[0] < 1000 and point[1] < 1000 and point[2] < 1000):
+                    point_return.append(point)
                 
-                print(ch.read())
                 if len(ch.read()) == 43:
                     for j in range(4):
+                        temp = []
                         n_id[j] = bytearray(ch.read()[j*7+15:j*7+17])
                         n_dis[j] = bytearray(ch.read()[17+j*7:21+j*7])
                         n_id[j] = hex(struct.unpack('<H', n_id[j])[0])
                         n_dis[j] = struct.unpack('<i', n_dis[j])[0]
-                        print((n_id[j]), ':', (n_dis[j]/1000), '      ', end ='')
+                        # print((n_id[j]), ':', (n_dis[j]/1000), '      ', end ='')
                     print('\n')
-                    print('\n')
-                
                     
     finally:
         dev.disconnect()
+        return point_return

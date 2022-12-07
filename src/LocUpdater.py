@@ -7,47 +7,40 @@ import base64
 from datetime import datetime
 from pytz import timezone
 from spatical_db_management import SpetialDBManagement
+from uwb_localization import localization
 # from uwb_localization import localization
 
 class LocUpdater():
     WAITTIME = 5
     now = datetime.now(timezone('Asia/Seoul'))
     aws_url = None
+    point_list = []
     
     def __init__(self) -> None:
     
         # localization()
         self.aws_url = " https://77gonk6cp7.execute-api.ap-northeast-1.amazonaws.com/default"
     
+    def get_location_point(self):
+        self.point_list = localization()
+        print(self.point_list)
     
-    def upload_localdata_to_dynamoDB(self, id_user, x, y, formatted_data):
+    def upload_localdata_to_dynamoDB(self, id_user, formatted_data):
         #formatted_data = self.now.strftime('%Y-%m-%d %H:%M:%S')
-        local_data = {
-            'id_user' : id_user,
-            'x' : x,
-            'y' : y,
-            'date' : formatted_data[0:11],
-            'time' : formatted_data[11:].replace(":","-")
-        }
-        host = self.aws_url + '/user_local_data'
-        response = requests.post(host, data = local_data, headers=None)
         
-        return response
-    
-    # def upload_visitdata_to_dynamoDB(self, id_user, id_market, market_name, formatted_data):
-    #     # formatted_data = self.now.strftime('%Y-%m-%d %H:%M:%S')
-    #     visit_data = {
-    #         'id_user' : id_user,
-    #         'id_market' : id_market,
-    #         'market_name' : market_name,
-    #         'date' : formatted_data[0:11],
-    #         'time' : formatted_data[11:].replace(":","-")
-    #     }
-    #     host = self.aws_url + '/user_local_data'
-    #     response = requests.post(host, data = visit_data, headers=None)
+        print(len(self.point_list))
+        for i in range(len(self.point_list)):
+            local_data = {
+                'id_user' : id_user,
+                'x' : self.point_list[i][0],
+                'y' : self.point_list[i][1],
+                'date' : formatted_data[0:11],
+                'time' : formatted_data[11:].replace(":","-")
+            }
+            host = self.aws_url + '/user_local_data'
+            response = requests.post(host, data = local_data, headers=None)
+            print(response)
         
-    #     return response
-
     def upload_product_hold_data_to_dynamoDB(self, id_user, market_name, product_name, formatted_data):
         #formatted_data = self.now.strftime('%Y-%m-%d %H:%M:%S')
         pd_hold_data = {
@@ -78,8 +71,9 @@ formatted_data = now.strftime('%Y-%m-%d %H:%M:%S')
 # print(formatted_data)
 # print(test.upload_localdata_to_dynamoDB())
 # test.upload_product_hold_data_to_dynamoDB(sample_data['user_id'], sample_data['market_name'], sample_data['product_name'],formatted_data)
+test.get_location_point()
 
-test.upload_localdata_to_dynamoDB(sample_data['user_id'], sample_data['x_user'], sample_data['y_user'], formatted_data)
+test.upload_localdata_to_dynamoDB(sample_data['user_id'], formatted_data)
 
 '''
 

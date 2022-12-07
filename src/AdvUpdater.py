@@ -55,8 +55,3 @@ class AdvUpdater():
         print(adv_youtube_url)     # DB에 존재하는 광고 이름의 유튜브 주소값 출력
         
         return adv_youtube_url 
-    
-adv_data_updater = AdvUpdater()
-#adv_data_updater.load_advertisement_data_with_json("advertisement_data.json")
-#adv_data_updater._upload_to_dynamoDB()
-#adv_data_updater._search_in_dynamoDB("iPhone14")
