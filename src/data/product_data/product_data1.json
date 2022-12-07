@@ -1,8 +1,8 @@
 {
     "market_id" : 11324,
     "product_id" : 3362,
-    "x" : 3,
-    "y" : 4,
+    "x" : 0.162,
+    "y" : 2.5,
     "market_name" : "APPLE",
     "product_name" : "iPhone14"
 }

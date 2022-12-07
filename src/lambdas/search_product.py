@@ -12,7 +12,7 @@ def lambda_handler(event, context):
     table_name = 'product_data'
     
     items = {
-        'user_id' : result[11:]        # primary key
+        'product_id' : result[11:]        # primary key
     }
     print(items)
     
@@ -23,7 +23,7 @@ def lambda_handler(event, context):
                 'Keys' : [
                     {
                         'product_id' : {
-                            'N' : items['user_id']
+                            'N' : items['product_id']
                         }
                     }
                 ]

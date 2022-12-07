@@ -14,16 +14,14 @@ def lambda_handler(event, context):
     newlist = result.split('&')
     
     items = {
-        'id_user' : newlist[0][8:],        # primary key
-        'market_name' : newlist[1][12:],
-        'product_name'  : newlist[2][13:],
-        'date' : newlist[3][5:-1].replace('-',''),
-        'time' : newlist[4][5:].replace('-','')
+        'product_id' : int(newlist[0][11:]),        # primary key
+        'user_id' : newlist[1][8:]
+        'time' : newlist[2][5:]
     }
 
     print(items)
     dynamodb = boto3.resource('dynamodb')
-    table = dynamodb.Table('visit_store')
+    table = dynamodb.Table('hold_product')
     response = table.put_item(Item = items)
     
     return response

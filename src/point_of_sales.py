@@ -40,8 +40,6 @@ class Point_to_sales():
             self.sales_data['price'] = data['price']
             self.sales_data['date'] = formatted_data[0:9]
 
-                    
-        print(self.sales_data)
         return None
     
     def _upload_to_dynamoDB(self):
@@ -81,13 +79,13 @@ class Product():
             
         self.product_data['date'] = formatted_data[:8]
         self.product_data['time'] = formatted_data[10:]
+        print("path" + file_path + " -> ")
         print(self.product_data)
 
         
     def upload_product_data_to_dynamoDB(self):
         host = self.aws_url + '/add_product_data'
         response = requests.post(host, data = self.product_data, headers=None)
-        print(response)
                 
         return response
     
@@ -101,12 +99,12 @@ class Product():
         host = self.aws_url + '/search_product'
         response = requests.post(host, data=data, headers=None)
         return_data = json.loads(response.content)
-        print(return_data)
-        
+
+        #{'date': {'S': '20221208'}, 'product_name': {'S': 'iPhone14'}, 'x': {'S': '0.162'}, 'y': {'S': '2.5'}, 'time': {'S': '64808'}, 'market_id': {'N': '11324'}, 'product_id': {'N': '3362'}, 'market_name': {'S': 'APPLE'}}
         result_dict = {
         'product_name' : return_data[0]['product_name']['S'],
-        'x' : return_data[0]['x']['N'],
-        'y' : return_data[0]['y']['N'],
+        'x' : return_data[0]['x']['S'],
+        'y' : return_data[0]['y']['S'],
         'market_id' : return_data[0]['market_id']['N'],
         'product_id' : return_data[0]['product_id']['N'],
         'market_name' : return_data[0]['market_name']['S'],
@@ -115,8 +113,57 @@ class Product():
         }
         
         return result_dict
-        
     
+    def user_hold_product(self, data):
+        host = self.aws_url + '/user_hold_product'
+        response = requests.post(host, data = data, headers=None)
+                
+        return response
+        
+class Get_data():
+    def __init__(
+        self,
+        aws_url = None
+    ) -> None:
+        self.aws_url = "https://77gonk6cp7.execute-api.ap-northeast-1.amazonaws.com/default"
+        
+        return None
+    
+    
+    def get_user_local_data_in_dynamoDB(
+        self,
+        user_id,
+        time
+    ):
+        data = {
+            "user_id" : user_id,
+            "time" : time
+        }
+        host = self.aws_url + '/search_user_local_data'
+        response = requests.post(host, data=data, headers=None)
+        return_data = json.loads(response.content)
+        
+        if(len(return_data) == 0):
+            return -1
+                    
+        
+        result_dict = {
+        'user_id' : return_data[0]['user_id']['N'],
+        'x' : return_data[0]['x']['S'],
+        'y' : return_data[0]['y']['S'],
+        'date' : int(return_data[0]['date']['S']),
+        'time' : return_data[0]['time']['N']
+        }
+        
+        return result_dict
+
+
+    def get_product_data_in_range():
+        host = self.aws_url + '/get_product_condition_data'
+        data = {}
+        response = requests.post(host, data=data, headers=None)
+
+        return response
     
 
 def main():
@@ -135,7 +182,9 @@ def main():
     '''
     
     product = Product()
-    product.load_product_data_with_json("data/product_data.json", formatted_data)
+    for i in range(3):
+        path = 'data/product_data/product_data' + str(i+1) + '.json'
+        product.load_product_data_with_json(path, formatted_data)
     
     
     # product 데이터를 AWS에 저장

@@ -5,7 +5,7 @@ import json
 import uwb_localization
 from datetime import datetime
 from pytz import timezone
-from spatical_db_management import SpetialDBManagement
+# from spatical_db_management import SpetialDBManagement
 from LocUpdater import Locupdater
 
 
