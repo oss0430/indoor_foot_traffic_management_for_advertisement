@@ -2,6 +2,7 @@ import RPi.GPIO as GPIO
 import picamera
 import time
 import datetime
+import shutil
 import os
 import cv2
 import json
@@ -106,7 +107,7 @@ class ScreenController():
         while True:
             image = cv2.imread(path)
             cv2.imshow("Billboard", image)
-            key = cv2.waitKey(10)
+            key = cv2.waitKey(0.1)
 
             if self.new_image_event.is_set():
                 cv2.destroyAllWindows()
@@ -144,6 +145,7 @@ class ScreenController():
                 break
 
         return
+
 
 
 class AWSIoTController():
@@ -388,4 +390,74 @@ class Billboard():
             keep_checking_face_thread.join()
             keep_updating_billboard_thread.join()
             
+        return
+
+class ApplicationTester():
+    def __init__(
+        self
+    ) :
+        None
+
+    def test_billboard(
+        self
+    ):
+
+        camera_capture_dir_path = "./captured_image"
+        cascade_file_path = "haarcascade_frontalface_default.xml"
+        aws_config_json_path = "aws_config.json"
+        billboard_image_path = "billboard_image.png"
+
+
+        my_ultra_sound_sensor = UltraSoundSensor()
+        my_camera_controller = CameraController(
+            correct_rotation = "90",
+            resolution = (640, 400)
+        )
+        my_cloud_config = AWSMQTTConfig()
+        my_cloud_config.read_config_json(aws_config_json_path)
+
+        my_aws_iot_controller = AWSIoTController(
+            "0",
+            my_cloud_config,
+            "billboard/pub",
+            "billboard/sub"
+        )
+
+        my_screen_controller = ScreenController()
+        my_billboard = Billboard(
+            camera_controller = my_camera_controller,
+            screen_controller = my_screen_controller,
+            aws_cloud = my_aws_iot_controller,
+            ultrasound_sensor = my_ultra_sound_sensor,
+            billboard_image_path = billboard_image_path,
+            camera_capture_dir_path = camera_capture_dir_path,
+            cascade_file_path = cascade_file_path,
+        )
+
+        my_billboard.run_billboard()
+
+
+    def testScreenController(
+        self,
+        original_image_path : str,
+        new_image_path : str
+    ):
+        copy_path = "test_copy_image.png"
+
+        shutil.copyfile(original_image_path, copy_path)
+
+        my_screen_controller = ScreenController()
+
+        threading.Thread(target = my_screen_controller.run_screen, args = (copy_path,))
+        time.sleep(3)
+        shutil.copyfile(new_image_path, copy_path)
+        my_screen_controller.update_screen_with_new_image()
+        time.sleep(3)
+
+        
+        my_screen_controller.stop_screen_for_good()
+        
+        if os.path.isfile(copy_path):
+            os.remove(copy_path)
+
         return

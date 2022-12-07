@@ -2,7 +2,7 @@ import RPi.GPIO as GPIO
 from cloud_config import AWSMQTTConfig
 from billboardApplication import *
 
-
+"""
 camera_capture_dir_path = "./captured_image"
 cascade_file_path = "haarcascade_frontalface_default.xml"
 aws_config_json_path = "aws_config.json"
@@ -46,6 +46,11 @@ my_billboard = Billboard(
 
 GPIO.cleanup()
 time.sleep(1000000)    
+"""
+
+tester = ApplicationTester()
+
+tester.testScreenController(original_image_path= "test_img.png", new_image_path="../img/System_cloud.PNG")
 
 
 
