@@ -142,7 +142,7 @@ class AWSIoTController():
         subscribe_topic : str
     ) -> None:
 
-        self.clinet_name = client_name
+        self.client_name = client_name
         self.cloud_config = cloud_config
         client = AWSIoTPyMQTT.AWSIoTMQTTClient(client_name)
         client.configureEndpoint(cloud_config.host_name, 8883) 
@@ -170,7 +170,7 @@ class AWSIoTController():
         b64 = base64.b64encode(img_jpg)
         messageJson = json.dumps(
             {
-                'device_name' : self.clinet_name,
+                'device_name' : self.client_name,
                 'image':b64.decode("utf-8"),
                 'datetime' : datetime.datetime.now().strftime("%Y%M%D_%H:%M:%S")
             }
@@ -205,7 +205,7 @@ class AWSIoTController():
         
         faceCount_json = json.dumps(
             {
-                'device_name' : self.clinet_name,
+                'device_name' : self.client_name,
                 'facecount':face_count,
                 'datetime' : datetime.datetime.now().strftime("%Y%M%D_%H:%M:%S")
             }
