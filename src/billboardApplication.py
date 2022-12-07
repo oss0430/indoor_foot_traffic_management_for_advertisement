@@ -5,6 +5,8 @@ import datetime
 import shutil
 import os
 import cv2
+from PIL import Image
+import subprocess
 import json
 import base64
 import numpy as np
@@ -104,20 +106,23 @@ class ScreenController():
         path
     ) -> None:
 
+        self.new_image_event.clear()
+        imageViewerFromCommandLine = {
+                'linux':'xdg-open',
+                'win32':'explorer',
+                'darwin':'open'
+            }[sys.platform]
+        viewer = subprocess.Popen([imageViewerFromCommandLine, path])
+        
+        print("showing image",flush=True)
         while True:
-            print("image_loop")
-            image = cv2.imread(path)
-            cv2.imshow("Billboard", image)
-            key = cv2.waitKey(0)
-
             if self.new_image_event.is_set():
-                cv2.destroyAllWindows()
+                print("closing image",flush=True)
+                viewer.terminate()
+                viewer.kill()
+                self.new_image_event.clear()
                 break
-
-            if self.stop_screen_event.is_set():
-                cv2.destroyAllWindows()
-                break
-
+        
         return
 
     def update_screen_with_new_image(self) -> None :
@@ -133,19 +138,28 @@ class ScreenController():
         image_path : str     
     )-> None:
 
+        #print("running_screen start", flush=True)
         self.stop_screen_event.clear()
         self.new_image_event.clear()
 
+        print("attepted to show image",flush=True)
+        thread = threading.Thread(target=self._show_image_from_path_on_screen, args=(image_path,))
+        thread.start()
         while True:
-            thread = threading.Thread(target = self._show_image_from_path_on_screen, args = (image_path,))
-            thread.start()
-            thread.join()
-            self.new_image_event.clear()
-
             if self.stop_screen_event.is_set():
+                print("attepted to terminated showing image",flush=True)
+                self.new_image_event.set()
+                thread.join()
                 self.stop_screen_event.clear()
                 break
 
+            elif self.new_image_event.is_set():
+                
+                thread.join()
+                thread = threading.Thread(target=self._show_image_from_path_on_screen, args=(image_path,))
+                print("attepted to show image",flush=True)
+                thread.start()
+            
         return
 
 
@@ -447,18 +461,29 @@ class ApplicationTester():
         copy_path = "test_copy_image.png"
 
         shutil.copyfile(original_image_path, copy_path)
-
+        time.sleep(5)
+    
         my_screen_controller = ScreenController()
 
-        threading.Thread(target = my_screen_controller.run_screen, args = (copy_path,))
-        time.sleep(3)
-        shutil.copyfile(new_image_path, copy_path)
-        my_screen_controller.update_screen_with_new_image()
-        time.sleep(3)
+        
+        print("activate screen")
+        thread = threading.Thread(target = my_screen_controller.run_screen, args = (copy_path,))
+        thread.start()
 
+        time.sleep(5)
+        shutil.copyfile(new_image_path, copy_path)
         
+        print("try to change image",flush=True)
+        my_screen_controller.update_screen_with_new_image()
+        time.sleep(5)
+        
+        print("try to close image",flush=True)
         my_screen_controller.stop_screen_for_good()
-        
+        time.sleep(5)
+
+        thread.join()
+
+
         if os.path.isfile(copy_path):
             os.remove(copy_path)
 
