@@ -1,4 +1,4 @@
-import RPi.GPIO as GPIO
+#import RPi.GPIO as GPIO
 from cloud_config import AWSMQTTConfig
 from billboardApplication import *
 

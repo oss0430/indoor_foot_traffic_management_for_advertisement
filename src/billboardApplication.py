@@ -105,9 +105,10 @@ class ScreenController():
     ) -> None:
 
         while True:
+            print("image_loop")
             image = cv2.imread(path)
             cv2.imshow("Billboard", image)
-            key = cv2.waitKey(0.1)
+            key = cv2.waitKey(0)
 
             if self.new_image_event.is_set():
                 cv2.destroyAllWindows()
@@ -133,6 +134,7 @@ class ScreenController():
     )-> None:
 
         self.stop_screen_event.clear()
+        self.new_image_event.clear()
 
         while True:
             thread = threading.Thread(target = self._show_image_from_path_on_screen, args = (image_path,))
