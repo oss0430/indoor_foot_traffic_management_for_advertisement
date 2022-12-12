@@ -143,10 +143,13 @@ class Get_data():
         response = requests.post(host, data=data, headers=None)
         return_data = json.loads(response.content)
         
+        
+        return return_data
+        
         if(len(return_data) == 0):
             return -1
                     
-        
+        '''
         result_dict = {
         'user_id' : return_data[0]['user_id']['N'],
         'x' : return_data[0]['x']['S'],
@@ -156,6 +159,7 @@ class Get_data():
         }
         
         return result_dict
+        '''
 
 
     def get_product_data_in_range():

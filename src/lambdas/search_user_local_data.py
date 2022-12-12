@@ -12,7 +12,7 @@ def lambda_handler(event, context):
     newlist = result.split('&')
     items = {
         'user_id' : newlist[0][8:],        # primary key
-        'time' : newlist[1][5:].replace('-','')
+        'time' : newlist[1][5:]
     }
     print(items)
     
