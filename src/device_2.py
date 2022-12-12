@@ -50,7 +50,7 @@ time.sleep(1000000)
 
 tester = ApplicationTester()
 
-tester.testScreenController(original_image_path= "test_img.png", new_image_path="../img/System_cloud.PNG")
-
+#tester.testScreenController(original_image_path= "test_img.png", new_image_path="../img/System_cloud.PNG")
+tester.test_camera_and_ultra_sonic()
 
 
