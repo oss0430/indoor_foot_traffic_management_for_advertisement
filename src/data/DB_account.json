@@ -1,0 +1,5 @@
+{
+    "account" : "admin1",
+    "password" : 1234,
+    "table" : "location_data"
+}
