@@ -1,7 +1,8 @@
 import json
 import boto3
 import base64
-
+from boto3.dynamodb.conditions import Key
+from decimal import Decimal
 
 def lambda_handler(event, context):
     data = event.get('body')
@@ -16,30 +17,21 @@ def lambda_handler(event, context):
     }
     print(items)
     
-    dynamodb = boto3.resource('dynamodb')
-    table_name = 'local_data'
+    resource = boto3.resource('dynamodb')
+    table = resource.Table("local_data")
+    query = {"KeyConditionExpression": Key("user_id").eq(int(items['user_id']))}
+    print(table.query(**query)['Items'])
     
-    client = boto3.client('dynamodb')
-    response = client.batch_get_item(
-        RequestItems = {
-            table_name : {
-                'Keys' : [
-                    {
-                        'user_id' : {
-                            'N' : items['user_id'],
-                        },
-                        'time' : {
-                            'N' : items['time'],
-                        },
-                    }
-                ]
-            }
-        }
-    )
-    result = response['Responses'].get(table_name)
-    print(result)
+    response = table.query(**query)['Items']
+    print(response)
+    
+    for i in range (len(response)):
+        dc_time = response[i]['time']
+        response[i]['time'] = int(dc_time)
+        dc_userid = response[i]['user_id']
+        response[i]['user_id'] = int(dc_userid)
 
     return {
         'statusCode' : 200,
-        'body' : json.dumps(result)
+        'body' : json.dumps(response)
     }

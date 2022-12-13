@@ -21,7 +21,7 @@ def lambda_handler(event, context):
     
     
     resource = boto3.resource('dynamodb')
-    table = resource.Table("product_data")
+    table = resource.Table("point_of_sales")
     query = {"KeyConditionExpression": Key("product_id").eq(int(items['product_id']))}
 
     print(table.query(**query)['Items'])
@@ -32,15 +32,13 @@ def lambda_handler(event, context):
     for i in range (len(response)):
         dc_productid = response[i]['product_id']
         response[i]['product_id'] = int(dc_productid)
-        dc_marketid = response[i]['market_id']
-        response[i]['market_id'] = int(dc_marketid)
-        dc_userid = response[i]['user_id']
-        response[i]['user_id'] = int(dc_userid)        
+        dc_price = response[i]['price']
+        response[i]['price'] = int(dc_price)        
         
         dc_date = response[i]['date']
         response[i]['date'] = int(dc_date)
-        dc_time = response[i]['time']
-        response[i]['time'] = int(dc_time)        
+        dc_count = response[i]['count']
+        response[i]['count'] = int(dc_count)        
         
 
     return {

@@ -16,6 +16,7 @@ def lambda_handler(event, context):
     
     '''
     ['market_name=iPhone+14', 'product_name=Apple', 'product_id=11343', 'count=14', 'price=1250000', 'date=2022-12-07']
+
     '''
     items = {
         'product_id'  : int(newlist[2][11:]),  
