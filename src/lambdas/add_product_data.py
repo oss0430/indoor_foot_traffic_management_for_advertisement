@@ -16,10 +16,13 @@ def lambda_handler(event, context):
     items = {
         'market_id' : int(newlist[0][10:]),
         'product_id' : int(newlist[1][11:]),        # primary key
-        'x'  : int(newlist[2][6:]),
-        'y' : int(newlist[3][6:]),
+        'user_id' : int(newlist[6][8:]),
+        'x'  : newlist[2][6:],
+        'y' : newlist[3][6:],
         'market_name' : newlist[4][12:].replace('+',''),
-        'product_name' : newlist[5][13:].replace('+','')
+        'product_name' : newlist[5][13:].replace('+',''),
+        'date' : newlist[7][5:],
+        'time' : newlist[8][5:]
     }
 
     print(items)
