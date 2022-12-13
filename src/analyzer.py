@@ -11,6 +11,7 @@ class TestSubject():
         name : str,
         tested_from : datetime.datetime,
         tested_till : datetime.datetime,
+        item_name : str,
         item_x : float,
         item_y : float
     ) -> None:
@@ -18,8 +19,17 @@ class TestSubject():
         self.tested_from = tested_from
         self.tested_till = tested_till
 
+        self.item_name = item_name
         self.item_x = item_x
         self.item_y = item_y
+
+
+    def to_string(self) -> str:
+        
+        start_string = self.tested_from.strftime("%Y/%m/%d %H:%M:%S")
+        end_string   = self.tested_till.strftime("%Y/%m/%d %H:%M:%S")
+        text = f"{self.name}:\nTest Period : {start_string} ~ {end_string}\nTarget Item : {self.item_name}\n Located At : {self.item_x}, {self.item_y}"
+        return text
 
 
 class Analyzer():
