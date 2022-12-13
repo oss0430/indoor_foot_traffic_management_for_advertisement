@@ -5,6 +5,7 @@ import datetime
 import shutil
 import os
 import cv2
+import random
 from PIL import Image
 import subprocess
 import json
@@ -24,7 +25,7 @@ class UltraSoundSensor():
         GPIO.setmode(GPIO.BCM)
         self.trigger_pin_BCM = trigger_pin_BCM
         self.echo_pin_BCM = echo_pin_BCM
-        self.is_in_front_upperbound_cm = 50.0
+        self.is_in_front_upperbound_cm = 90.0
 
         GPIO.setup(trigger_pin_BCM, GPIO.OUT)
         GPIO.setup(echo_pin_BCM, GPIO.IN)
@@ -86,8 +87,8 @@ class CameraController():
         dir_path : str
     ):
         camera = picamera.PiCamera()
-        camera.rotation = 90
-        camera.resolution = (640, 400)
+        camera.rotation = 0
+        camera.resolution = (2592, 1944)
         camera.start_preview()
         camera.capture(dir_path + "/captured_image.png")
         camera.close()
@@ -203,7 +204,8 @@ class AWSIoTController():
             {
                 'device_name' : self.client_name,
                 'image':b64.decode("utf-8"),
-                'datetime' : datetime.datetime.now().strftime("%Y%M%D_%H:%M:%S")
+                'date' : datetime.datetime.now().strftime("%Y%m%d"),
+                'time' : datetime.datetime.now().strftime("%H%M%S")
             }
         )
             
@@ -238,14 +240,20 @@ class AWSIoTController():
             {
                 'device_name' : self.client_name,
                 'facecount':face_count,
-                'datetime' : datetime.datetime.now().strftime("%Y%M%D_%H:%M:%S")
+                'date' : datetime.datetime.now().strftime("%Y%m%d"),
+                'time' : datetime.datetime.now().strftime("%H%M%S")
             }
         )
-        #print("json_messages : ",faceCount_json, image_json)
+        print("json_messages : ",faceCount_json)
             
-        self.client.publishAsync(self.publish_topic+"/"+self.clinet_name +"/image", image_json, 1, ackCallback=awsPublishcallback)
-        self.client.publishAsync(self.publish_topic+"/"+self.clinet_name +"/face_count", faceCount_json, 1, ackCallback=awsPublishcallback)
+        self.client.publishAsync(self.publish_topic+"/"+self.client_name +"/image", image_json, 0, ackCallback=awsPublishcallback)
+        self.client.publishAsync(self.publish_topic+"/"+self.client_name +"/face_count", faceCount_json, 0, ackCallback=awsPublishcallback)
         
+        #try:
+        #    self.client.publish(self.publish_topic+"/"+self.client_name +"/image", image_json, 1)
+        #    self.client.publish(self.publish_topic+"/"+self.client_name +"/face_count", faceCount_json, 1)
+        #except:
+        #    None
 
     def subscribe_and_save_image(
         self,
@@ -260,7 +268,7 @@ class AWSIoTController():
 
 
     def testPublish(self):
-        self.publish_image_and_its_face_count("test_img.png", 5)
+        self.publish_image_and_its_face_count("test_img.png", random.randint(0,4))
 
     def testSubscribe(self):
         self.subscribe_and_save_image("subscribed_imaged_result.png")
@@ -324,7 +332,8 @@ class Billboard():
 
 
     def _keep_checking_face_and_publish(
-        self
+        self,
+        is_debug : bool = True
     ) -> bool:
 
         while True:
@@ -343,11 +352,22 @@ class Billboard():
             if self.ultrasound_sensor.are_people_in_front_standing():
                 self.camera_controller.take_picture_and_save_to_dir(self.camera_capture_dir_path)
                 face_count = self._get_face_count_in_captured_image_recognition(do_save_boxed_image = True)
+                if is_debug :
+                    im1 = Image.open(self.camera_capture_dir_path + "/captured_image.png")
+                    im1.show()
+                    im2 = Image.open(self.camera_capture_dir_path + "/captured_boxed.png")
+                    im2.show()
+                    print(f"{face_count} People Detected" , flush= True)
+                
                 self.aws_iot_controller.publish_image_and_its_face_count(image_path = self.camera_capture_dir_path + "/captured_boxed.png", face_count= face_count)
-                print("yes_poeple")
+                time.sleep(3)
+                if is_debug : 
+                    print("yes_poeple", flush= True)
                     
             else :
-                print("no_people")
+                if is_debug : 
+                    print("no_poeple", flush= True)
+
                 time.sleep(1)
 
         return
@@ -408,6 +428,22 @@ class Billboard():
             
         return
 
+    def test_camera_and_ultra_sonic(
+        self
+    ):
+        ## Shows Billboard image through screen
+        ## update billboard image when subscription
+        ## upload face recognition result when people is infront of billboard
+        self.close_billboard_for_good_event.clear()
+   
+        ## Thread a people checker
+            
+        keep_checking_face_thread = threading.Thread(target = self._keep_checking_face_and_publish)
+        keep_checking_face_thread.start()
+        keep_checking_face_thread.join()
+            
+        return
+
 class ApplicationTester():
     def __init__(
         self
@@ -443,7 +479,7 @@ class ApplicationTester():
         my_billboard = Billboard(
             camera_controller = my_camera_controller,
             screen_controller = my_screen_controller,
-            aws_cloud = my_aws_iot_controller,
+            aws_iot_controller = my_aws_iot_controller,
             ultrasound_sensor = my_ultra_sound_sensor,
             billboard_image_path = billboard_image_path,
             camera_capture_dir_path = camera_capture_dir_path,
@@ -451,6 +487,44 @@ class ApplicationTester():
         )
 
         my_billboard.run_billboard()
+
+    def test_camera_and_ultra_sonic(
+        self
+    ):
+
+        camera_capture_dir_path = "./captured_image"
+        cascade_file_path = "haarcascade_frontalface_default.xml"
+        aws_config_json_path = "aws_config.json"
+        billboard_image_path = "billboard_image.png"
+
+
+        my_ultra_sound_sensor = UltraSoundSensor()
+        my_camera_controller = CameraController(
+            correct_rotation = "90",
+            resolution = (640, 400)
+        )
+        my_cloud_config = AWSMQTTConfig()
+        my_cloud_config.read_config_json(aws_config_json_path)
+
+        my_aws_iot_controller = AWSIoTController(
+            "0",
+            my_cloud_config,
+            "billboard/pub",
+            "billboard/sub"
+        )
+
+        my_screen_controller = ScreenController()
+        my_billboard = Billboard(
+            camera_controller = my_camera_controller,
+            screen_controller = my_screen_controller,
+            aws_iot_controller = my_aws_iot_controller,
+            ultrasound_sensor = my_ultra_sound_sensor,
+            billboard_image_path = billboard_image_path,
+            camera_capture_dir_path = camera_capture_dir_path,
+            cascade_file_path = cascade_file_path,
+        )
+
+        my_billboard.test_camera_and_ultra_sonic()
 
 
     def testScreenController(
@@ -488,3 +562,18 @@ class ApplicationTester():
             os.remove(copy_path)
 
         return
+
+    
+    def testPublish(self):
+        my_cloud_config = AWSMQTTConfig()
+        my_cloud_config.read_config_json("aws_config.json")
+
+        my_aws_iot_controller = AWSIoTController(
+            "0",
+            my_cloud_config,
+            "billboard/pub",
+            "billboard/sub"
+        )
+
+        my_aws_iot_controller.testPublish()
+        time.sleep(5)

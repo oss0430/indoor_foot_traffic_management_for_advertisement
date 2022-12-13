@@ -1,0 +1,26 @@
+{
+    "0" : {
+        "market_id" : 11324,
+        "product_id" : 3362,
+        "x" : 3,
+        "y" : 4,
+        "market_name" : "APPLE",
+        "product_name" : "iPhone14"
+    },
+    "1" : {
+        "market_id" : 73245,
+        "product_id" : 6463,
+        "x" : 3,
+        "y" : 4,
+        "market_name" : "starbucks",
+        "product_name" : "americano"
+    },
+    "2" : {
+        "market_id" : 93234,
+        "product_id" : 3892,
+        "x" : 3,
+        "y" : 4,
+        "market_name" : "NIKE",
+        "product_name" : "airmax"
+    }
+}
