@@ -64,47 +64,6 @@ class Product():
         response = requests.post(host, data = self.product_data, headers=None)
                 
         return response
-    
-    
-    # def product_search_in_dynamoDB(
-    #     self,
-    #     product_id
-    # ):
-    #     data = {
-    #         "product_id" : product_id
-    #     }
-    #     host = self.aws_url + '/search_product'
-    #     response = requests.post(host, data=data, headers=None)
-    #     return_data = json.loads(response.content)
-
-    #     #{'date': {'S': '20221208'}, 'product_name': {'S': 'iPhone14'}, 'x': {'S': '0.162'}, 'y': {'S': '2.5'}, 'time': {'S': '64808'}, 'market_id': {'N': '11324'}, 'product_id': {'N': '3362'}, 'market_name': {'S': 'APPLE'}}
-    #     result_dict = {
-    #     'product_name' : return_data[0]['product_name']['S'],
-    #     'x' : return_data[0]['x']['S'],
-    #     'y' : return_data[0]['y']['S'],
-    #     'market_id' : return_data[0]['market_id']['N'],
-    #     'product_id' : return_data[0]['product_id']['N'],
-    #     'market_name' : return_data[0]['market_name']['S'],
-    #     'date' : return_data[0]['date']['S'],
-    #     'time' : return_data[0]['time']['S']
-    #     }
-        
-    #     return result_dict
-    
-    #     '''
-    #     product_search_in_dynamoDB 함수 사용 코드 (현재 사용 x)
-    #     product_id_list = []
-    #     for i in range (3):
-    #         file_path = 'data/product_data/product_data' + str(i+1) + '.json'
-    #         with open(file_path, 'r') as file:
-    #             data = json.load(file)
-    #             product_id_list.append(data['product_id'])   
-    
-    #     product_list = {}
-    #     for i in range(3):
-    #         product_dt= product.product_search_in_dynamoDB(product_id_list[i])
-    #         product_list[str(product_id_list[i])] = {'x' : product_dt['x'], 'y' : product_dt['y']}      
-    #     '''
         
     
 
