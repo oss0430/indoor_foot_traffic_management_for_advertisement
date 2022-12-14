@@ -80,7 +80,7 @@ class Analyzer():
             test_subject : TestSubject
         ):
             distance = np.sqrt(np.square((test_subject.item_x - row['x'])) + np.square((test_subject.item_y - row['y'])))
-            if distance < 2 :
+            if distance < 0.5 :
                 return True
 
             else :
@@ -100,7 +100,8 @@ class Analyzer():
                     
                 if is_near(row, self.test_subjects[index]) :
                     time_spent_result[user_id]["time_spent"] = time_spent_result[user_id]["time_spent"] + 5
-
+            
+            print(len(time_spent_result))    
             time_spent_results.append(pd.DataFrame.from_dict(time_spent_result, orient="index").reset_index())
 
         ## USER | TIME_SPENT (NEAR_ITEM)
@@ -220,7 +221,8 @@ class Analyzer():
         test_results.append(raw_test_results.loc[raw_test_results['name'] == self.test_subjects[0].name])
         test_results.append(raw_test_results.loc[raw_test_results['name'] == self.test_subjects[1].name])
         
-        print(test_results[0].head(5),test_results[1].head(5))
+        print(test_results[0].head(5))
+        print(test_results[1].head(5))
         return test_results
 
 
@@ -275,7 +277,7 @@ class Analyzer():
     def do_reject_null_hypothesis(
         self,
         p_value : float,
-        threshold : float = 0.05
+        threshold : float = 0.005
     ) -> bool:
 
         if p_value < threshold:
