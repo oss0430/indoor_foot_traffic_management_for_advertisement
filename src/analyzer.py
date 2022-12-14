@@ -46,9 +46,9 @@ class Analyzer():
         self.test_subjects = test_subjects
         
         ## List of PANDAS
-        self.sales_results = self._split_result_according_to_test_subject(raw_test_results= raw_sales_result, date_column_name = raw_sales_result.columns(2))
-        self.loc_results = self._split_result_according_to_test_subject(raw_test_results= raw_loc_result, date_column_name = raw_loc_result.columns(2))
-        self.face_results = self._split_result_according_to_test_subject(raw_test_results= raw_face_result, date_column_name = raw_face_result.columns(2))
+        self.sales_results = self._split_sales_according_to_test_subject(raw_test_results= raw_sales_result)
+        self.loc_results = self._split_loc_according_to_test_subject(raw_test_results= raw_loc_result)
+        self.face_results = self._split_face_according_to_test_subject(raw_test_results= raw_face_result)
         
         ## DATA for Actual 
         self.time_spent  = self._from_loc_results_get_time_spent_results(self.loc_results)
@@ -61,9 +61,10 @@ class Analyzer():
     ) -> list:
         visit_count = []
 
-        visit_count.append(len(loc_results[0]))
-        visit_count.append(len(loc_results[1]))
+        visit_count.append(len(loc_results[0]['user_id'].unique()))
+        visit_count.append(len(loc_results[1]['user_id'].unique()))
 
+        print(visit_count)
         return visit_count
 
 
@@ -78,7 +79,7 @@ class Analyzer():
             row : pd.Series,
             test_subject : TestSubject
         ):
-            distance = np.sqrt((test_subject.item_x - row['x'])^2 + (test_subject.item_y - row['y'])^2)
+            distance = np.sqrt(np.square((test_subject.item_x - row['x'])) + np.square((test_subject.item_y - row['y'])))
             if distance < 2 :
                 return True
 
@@ -90,21 +91,22 @@ class Analyzer():
         for index, loc_result in enumerate(loc_results):
             time_spent_result = {}
             for _, row in loc_result.iterrows():
+                user_id = row['user_id']
+                if user_id not in time_spent_result:
+                    time_spent_result[user_id] = {
+                        "time_spent" : 0
+                    }
+                    
                 if is_near(row, self.test_subjects[index]) :
-                    user_id = row['user_id']
-                    if row['user_id'] in time_spent_result:
-                        time_spent_result[user_id]["time_spent"] = time_spent_result[user_id]["time_spent"] + 5
-                    else :
-                        time_spent_result[user_id] = {
-                            "time_spent" : 5
-                        }
+                    time_spent_result[user_id]["time_spent"] = time_spent_result[user_id]["time_spent"] + 5
+
             time_spent_results.append(time_spent_result)
 
         ## USER | TIME_SPENT (NEAR_ITEM)
         ##   1  | 123
         ##   2  | 4331
         ##   4  | 543
-
+        print(time_spent_results)
         return time_spent_results
 
 
@@ -132,6 +134,135 @@ class Analyzer():
         test_results.append(raw_test_results.loc[raw_test_results['name'] == self.test_subjects[0].name])
         test_results.append(raw_test_results.loc[raw_test_results['name'] == self.test_subjects[1].name])
 
+        return test_results
+
+
+    def _split_sales_according_to_test_subject(
+        self,
+        raw_test_results : pd.DataFrame
+    ) -> list:
+
+        test_results = []
+        date_column_name = "date"
+
+        def distinguish_by_time(row):
+            current_date = str(row[date_column_name])
+            current_year  = int(current_date[:4])
+            current_month = int(current_date[4:6])
+            current_day  = int(current_date[6:8])
+
+            current_date = datetime.datetime(year=current_year, month=current_month, day = current_day)
+
+            name = ""
+            for test_subject in self.test_subjects:
+                name = ""
+                if current_date >= test_subject.tested_from and current_date < test_subject.tested_till :
+                    name =  test_subject.name
+                    break
+            
+            return name
+
+        raw_test_results['name'] = raw_test_results.apply(lambda x : distinguish_by_time(x), axis = 1)
+        
+        test_results.append(raw_test_results.loc[raw_test_results['name'] == self.test_subjects[0].name])
+        test_results.append(raw_test_results.loc[raw_test_results['name'] == self.test_subjects[1].name])
+        
+        print(test_results)
+        return test_results
+
+    def _split_loc_according_to_test_subject(
+        self,
+        raw_test_results : pd.DataFrame
+    ) -> list:
+
+        test_results = []
+        date_column_name = "date"
+        time_column_name = "time"
+
+        def distinguish_by_time(row):
+            current_date = str(int(row[date_column_name]))
+            
+            current_year  = int(current_date[:4])
+            current_month = int(current_date[4:6])
+            current_day  = int(current_date[6:8])
+
+            current_time = str(int(row[time_column_name]))
+            current_hour = int(current_time[:2])
+            current_min = int(current_time[2:4])
+            current_sec = int(current_time[4:6])
+
+            current_datetime = datetime.datetime(
+                year=current_year,
+                month=current_month,
+                day = current_day,
+                hour = current_hour,
+                minute =current_min,
+                second = current_sec
+            )
+
+            name = ""
+            for test_subject in self.test_subjects:
+                name = ""
+                if current_datetime >= test_subject.tested_from and current_datetime < test_subject.tested_till :
+                    name =  test_subject.name
+                    break
+            
+            return name
+
+        raw_test_results['name'] = raw_test_results.apply(lambda x : distinguish_by_time(x), axis = 1)
+        
+        test_results.append(raw_test_results.loc[raw_test_results['name'] == self.test_subjects[0].name])
+        test_results.append(raw_test_results.loc[raw_test_results['name'] == self.test_subjects[1].name])
+        
+        print(test_results[0].head(5),test_results[1].head(5))
+        return test_results
+
+
+    def _split_face_according_to_test_subject(
+        self,
+        raw_test_results : pd.DataFrame
+    ) -> list:
+
+        test_results = []
+        date_column_name = "date"
+        time_column_name = "time"
+
+        def distinguish_by_time(row):
+            current_date = str(int(row[date_column_name]))
+            
+            current_year  = int(current_date[:4])
+            current_month = int(current_date[4:6])
+            current_day  = int(current_date[6:8])
+
+            current_time = str(int(row[time_column_name]))
+            current_hour = int(current_time[:len(current_time)-4])
+            current_min = int(current_time[len(current_time)-4:len(current_time)-2])
+            current_sec = int(current_time[len(current_time)-2:len(current_time)])
+
+            current_datetime = datetime.datetime(
+                year=current_year,
+                month=current_month,
+                day = current_day,
+                hour = current_hour,
+                minute =current_min,
+                second = current_sec
+            )
+
+            name = ""
+            for test_subject in self.test_subjects:
+                name = ""
+                if current_datetime >= test_subject.tested_from and current_datetime < test_subject.tested_till :
+                    name =  test_subject.name
+                    break
+            
+            return name
+
+        raw_test_results['name'] = raw_test_results.apply(lambda x : distinguish_by_time(x), axis = 1)
+        
+        test_results.append(raw_test_results.loc[raw_test_results['name'] == self.test_subjects[0].name])
+        test_results.append(raw_test_results.loc[raw_test_results['name'] == self.test_subjects[1].name])
+        
+        print(test_results[0].head(5),test_results[1].head(5))
         return test_results
 
 

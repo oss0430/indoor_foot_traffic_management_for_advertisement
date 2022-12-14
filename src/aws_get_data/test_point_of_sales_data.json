@@ -1,0 +1,34 @@
+[
+      {
+            "count": 14,
+            "date": 20221201,
+            "product_name": "Apple",
+            "price": 1250000,
+            "product_id": 11343,
+            "market_name": "iPhone 14"
+      },
+      {
+            "count": 2,
+            "date": 20221202,
+            "product_name": "Apple",
+            "price": 1250000,
+            "product_id": 11343,
+            "market_name": "iPhone 14"
+      },
+      {
+            "count": 5,
+            "date": 20221203,
+            "product_name": "Apple",
+            "price": 1250000,
+            "product_id": 11343,
+            "market_name": "iPhone 14"
+      },
+      {
+            "count": 8,
+            "date": 20221204,
+            "product_name": "Apple",
+            "price": 1250000,
+            "product_id": 11343,
+            "market_name": "iPhone 14"
+      }
+]
