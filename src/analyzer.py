@@ -94,19 +94,24 @@ class Analyzer():
                 user_id = row['user_id']
                 if user_id not in time_spent_result:
                     time_spent_result[user_id] = {
+                        "user_id" : user_id,
                         "time_spent" : 0
                     }
                     
                 if is_near(row, self.test_subjects[index]) :
                     time_spent_result[user_id]["time_spent"] = time_spent_result[user_id]["time_spent"] + 5
 
-            time_spent_results.append(time_spent_result)
+            time_spent_results.append(pd.DataFrame.from_dict(time_spent_result, orient="index").reset_index())
 
         ## USER | TIME_SPENT (NEAR_ITEM)
         ##   1  | 123
         ##   2  | 4331
         ##   4  | 543
-        print(time_spent_results)
+        #time_spent_results = pd.DataFrame(time_spent_results)
+        
+        print(time_spent_results[0].head(5))
+        print(time_spent_results[1].head(5))
+        
         return time_spent_results
 
 
@@ -169,6 +174,7 @@ class Analyzer():
         
         print(test_results)
         return test_results
+
 
     def _split_loc_according_to_test_subject(
         self,
@@ -311,8 +317,8 @@ class Analyzer():
         self,
         z_score : float
     ):
-        p_value_1_tail = scipy.stats.st.norm(z_score)
-        p_value_2_tail = p_value_1_tail * 2
+        #p_value_1_tail = scipy.stats.norm.sf(z_score)
+        p_value_2_tail = scipy.stats.norm.sf(abs(z_score))
 
         return p_value_2_tail
 
@@ -323,7 +329,7 @@ class Analyzer():
 
         for idx, df_sales in enumerate(self.sales_results):
             distribution = {}
-            distribution['n'] = len(self.visit_count[idx])
+            distribution['n'] = self.visit_count[idx]
             sales_data = np.array(df_sales['count'].values.tolist())
 
             distribution['mean'] = float(np.mean(sales_data))
@@ -351,7 +357,7 @@ class Analyzer():
 
         for idx, df_time_spent in enumerate(self.time_spent):
             distribution = {}
-            distribution['n'] = len(self.visit_count[idx])
+            distribution['n'] = self.visit_count[idx]
             time_spent_data = np.array(df_time_spent['time_spent'].values.tolist())
 
             distribution['mean'] = float(np.mean(time_spent_data))
@@ -377,10 +383,10 @@ class Analyzer():
 
         distributions = []
 
-        for idx, df_sales in enumerate(self.sales_results):
+        for idx, df_face in enumerate(self.face_results):
             distribution = {}
-            distribution['n'] = len(self.visit_count[idx])
-            sales_data = np.array(df_sales['count'].values.tolist())
+            distribution['n'] = self.visit_count[idx]
+            sales_data = np.array(df_face['facecount'].values.tolist())
 
             distribution['mean'] = float(np.mean(sales_data))
             distribution['var']  = float(np.var(sales_data))
