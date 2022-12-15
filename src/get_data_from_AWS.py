@@ -64,12 +64,13 @@ def main():
     get_data = Get_data()
     
     # id = 11143, sample_time 범위 내의 user local 데이터 가져오기
-    sample_time =  [int(103834),int(104353)]
+    sample_time =  [int(155056),int(155134)]
     user_data = get_data.get_user_local_data_in_dynamoDB(11143,sample_time[0],sample_time[1])
     print(user_data)
     
     with open("aws_get_data/local_data.json", "w") as outfile:
         json.dump(user_data, outfile, indent=4)
+        
         
     # product_id = 6463인 항목 가져오기
     product_data = get_data.get_product_data(6463)
@@ -77,6 +78,7 @@ def main():
     
     with open("aws_get_data/product_data.json", "w") as outfile:
         json.dump(product_data, outfile, indent=9)
+
 
     # product_id = 11343인 상품의 판매기록 가져오기 (point_of_sales)
     product_data = get_data.get_point_of_sales_data(11343)
